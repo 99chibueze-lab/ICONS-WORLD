@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ICON</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="index.css">
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.18.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Pull to Refresh Indicator -->
+        <div id="pull-to-refresh-indicator">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <!-- Video Feed (Dynamically populated) -->
+        <div id="video-feed">
+            <div id="feed-tabs">
+                <button id="following-tab-btn" class="feed-tab-btn">Following</button>
+                <button id="for-you-tab-btn" class="feed-tab-btn active">For You</button>
+            </div>
+        </div>
+
+        <!-- Search Page -->
+        <div id="search-page" class="hidden">
+            <div class="search-header">
+                <div class="search-bar-container">
+                    <span class="material-symbols-outlined">search</span>
+                    <input type="search" id="search-input" placeholder="Search accounts and videos">
+                </div>
+            </div>
+            <div id="trending-searches-container">
+                <h3>Trending Searches 🔥</h3>
+                <div id="trending-tags" class="tags-container">
+                    <!-- Tags will be injected here -->
+                </div>
+            </div>
+            <div id="community-challenges-container">
+                <h3>Community Challenges ✨</h3>
+                <div id="community-challenges-list">
+                    <!-- AI challenges will be injected here -->
+                </div>
+            </div>
+            <div id="search-grid" class="video-grid">
+                <!-- Search results will be injected here -->
+            </div>
+            <p id="no-results-message" class="hidden">No results found for your search.</p>
+        </div>
+        
+        <!-- Sound Page -->
+        <div id="sound-page" class="hidden">
+            <div class="sound-page-header">
+                <button id="sound-page-back-btn" aria-label="Back to feed">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <h2 id="sound-page-title"></h2>
+            </div>
+            <div id="sound-page-grid" class="video-grid">
+                <!-- Videos using the sound will be injected here -->
+            </div>
+        </div>
+
+
+        <!-- Inbox Page -->
+        <div id="inbox-page" class="hidden">
+            <div class="inbox-header">
+                <h2>Inbox</h2>
+            </div>
+            <div class="inbox-content">
+                <span class="material-symbols-outlined large-icon">inbox</span>
+                <h3>Your messages</h3>
+                <p>Messages from your friends will appear here.</p>
+            </div>
+        </div>
+
+
+        <!-- Profile Page -->
+        <div id="profile-page" class="hidden">
+            <div class="profile-header">
+                 <div class="profile-header-top-actions">
+                    <button id="share-profile-btn" class="header-action-btn" aria-label="Share profile">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
+                    <button id="open-settings-btn" class="header-action-btn" aria-label="Open settings">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                </div>
+                <img src="https://i.pravatar.cc/150?u=me" alt="My Avatar" class="profile-avatar">
+                <div class="profile-username-container">
+                    <h2 class="profile-username">@me</h2>
+                    <div id="profile-badges" class="profile-badges-container"></div>
+                </div>
+                <p class="profile-bio">Edit your profile to add a bio!</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <strong>12</strong>
+                        <span>Following</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>1.5M</strong>
+                        <span>Followers</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>25.3M</strong>
+                        <span>Likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong id="profile-ep-balance">0</strong>
+                        <span>EP</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button id="edit-profile-btn" class="edit-profile-btn">Edit profile</button>
+                    <button id="open-rewards-hub-btn" class="rewards-btn">
+                        <span class="material-symbols-outlined">workspace_premium</span>
+                        Rewards
+                    </button>
+                </div>
+            </div>
+            <div class="profile-tabs">
+                <button id="profile-posts-tab" class="tab-item active" title="Posts"><span class="material-symbols-outlined">grid_on</span></button>
+                <button id="profile-favorites-tab" class="tab-item" title="Favorites"><span class="material-symbols-outlined">bookmark</span></button>
+            </div>
+            <div id="profile-grid" class="video-grid">
+                <!-- User's video thumbnails will be injected here -->
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-page" class="hidden">
+            <div class="settings-header">
+                <button id="back-to-profile-btn" aria-label="Back to profile">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <h2>Settings and privacy</h2>
+            </div>
+            <div class="settings-content">
+                <div class="settings-group">
+                    <h3 class="settings-group-header">Account</h3>
+                    <div class="settings-item" data-action="alert">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <span>Manage account</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                    <div class="settings-item" data-action="navigate" data-target="privacy-page">
+                        <span class="material-symbols-outlined">privacy_tip</span>
+                        <span>Privacy</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-header">Content & Display</h3>
+                     <div id="open-promotions-dashboard-btn" class="settings-item" data-action="modal">
+                        <span class="material-symbols-outlined">rocket_launch</span>
+                        <span>Promotions</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                    <div class="settings-item" data-action="navigate" data-target="push-notifications-page">
+                        <span class="material-symbols-outlined">notifications</span>
+                        <span>Push notifications</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">dark_mode</span>
+                        <span>Dark Mode</span>
+                        <label class="switch">
+                            <input type="checkbox" id="dark-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">visibility_off</span>
+                        <span>Zen Mode</span>
+                        <label class="switch">
+                            <input type="checkbox" id="zen-mode-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <p class="settings-description">When Zen Mode is on, all engagement counts (likes, comments, etc.) are hidden from your feed for a more focused viewing experience.</p>
+                </div>
+
+                <div class="settings-group">
+                    <h3 class="settings-group-header">Support & About</h3>
+                     <div class="settings-item" data-action="alert">
+                        <span class="material-symbols-outlined">help</span>
+                        <span>Help Center</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                    <div class="settings-item" data-action="alert">
+                        <span class="material-symbols-outlined">report</span>
+                        <span>Report a problem</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                     <div class="settings-item" data-action="alert">
+                        <span class="material-symbols-outlined">info</span>
+                        <span>About</span>
+                        <span class="material-symbols-outlined chevron">chevron_right</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <button id="logout-btn" class="settings-item logout">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span>Log out</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Sub-pages -->
+        <div id="privacy-page" class="settings-subpage hidden">
+            <div class="settings-header">
+                <button class="settings-back-btn" data-target="settings-page" aria-label="Back to settings">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <h2>Privacy</h2>
+            </div>
+            <div class="settings-content">
+                <div class="settings-group">
+                     <div class="settings-item">
+                        <span class="material-symbols-outlined">lock</span>
+                        <span>Private account</span>
+                        <label class="switch">
+                            <input type="checkbox" id="private-account-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <p class="settings-description">When your account is private, only people you approve can see your videos.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="push-notifications-page" class="settings-subpage hidden">
+            <div class="settings-header">
+                <button class="settings-back-btn" data-target="settings-page" aria-label="Back to settings">
+                    <span class="material-symbols-outlined">arrow_back_ios_new</span>
+                </button>
+                <h2>Push notifications</h2>
+            </div>
+            <div class="settings-content">
+                <div class="settings-group">
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">favorite</span>
+                        <span>Likes</span>
+                        <label class="switch">
+                            <input type="checkbox" id="likes-notifications-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">comment</span>
+                        <span>Comments</span>
+                        <label class="switch">
+                            <input type="checkbox" id="comments-notifications-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <span>New Followers</span>
+                        <label class="switch">
+                            <input type="checkbox" id="followers-notifications-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="settings-item">
+                        <span class="material-symbols-outlined">chat_bubble</span>
+                        <span>Direct Messages</span>
+                        <label class="switch">
+                            <input type="checkbox" id="dms-notifications-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Bottom Navigation -->
+        <nav id="bottom-nav">
+            <a href="#" id="home-btn" class="nav-item active">
+                <span class="material-symbols-outlined">home</span>
+                <span class="nav-text">Home</span>
+            </a>
+            <a href="#" id="discover-btn" class="nav-item">
+                <span class="material-symbols-outlined">search</span>
+                <span class="nav-text">Discover</span>
+            </a>
+            <button id="add-video-btn" class="nav-item add-video-button" aria-label="Add video">
+                <div id="rainbow-ball-icon"></div>
+            </button>
+            <a href="#" id="inbox-btn" class="nav-item">
+                <span class="material-symbols-outlined">chat_bubble</span>
+                <span class="nav-text">Inbox</span>
+            </a>
+            <a href="#" id="profile-btn" class="nav-item">
+                <span class="material-symbols-outlined">person</span>
+                <span class="nav-text">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Login Prompt Modal -->
+    <div id="login-prompt-modal" class="hidden">
+        <div class="modal-overlay" data-close-modal="login-prompt-modal"></div>
+        <div class="modal-content">
+            <button class="close-btn modal-close-btn" data-close-modal="login-prompt-modal" aria-label="Close">&times;</button>
+            <h2>Create a free account</h2>
+            <p>to like, comment, and upload your own videos.</p>
+            <div class="social-signup-options">
+                <button class="social-btn google">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.75 8.36,4.73 12.19,4.73C14.03,4.73 15.6,5.33 16.8,6.39L19.23,4.5C17.32,2.73 15.05,2 12.19,2C6.92,2 2.71,6.62 2.71,12C2.71,17.38 6.92,22 12.19,22C17.6,22 21.54,18.33 21.54,12.33C21.54,11.76 21.48,11.43 21.35,11.1Z"></path></svg>
+                    Continue with Google
+                </button>
+                <button class="social-btn facebook">
+                     <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#1877F2" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.81C10.44 7.31 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z"></path></svg>
+                    Continue with Facebook
+                </button>
+                 <button class="social-btn apple">
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M16.1,1.3C15.5,1.3 14.3,1.7 13.3,2.6C12.3,3.5 11.5,4.6 11.3,4.7C11.1,4.6 10.3,4 9.4,3.1C8.2,2.1 7.2,1.5 6.1,1.5C4.2,1.5 2.7,2.9 2.7,5.1C2.7,6.4 3.3,7.5 4.3,8.4C5.1,9.2 6.1,9.8 7.3,9.8C7.5,9.8 8.4,9.5 9.6,8.6C10.8,7.7 11.5,7.5 11.7,7.5C11.9,7.5 12.7,7.7 13.9,8.6C15.1,9.5 16,9.8 16.2,9.8C17.4,9.8 18.4,9.2 19.2,8.4C20.2,7.5 20.8,6.4 20.8,5.1C20.8,2.9 19.3,1.3 17.4,1.3C16.9,1.3 16.4,1.4 16.1,1.5L16.1,1.3Z M10.1,0.1C10.4,0 10.8,0 11.2,0C12.3,0 13.9,0.5 15,1.5C15.8,2.2 16.6,3.3 17,4.6C16.1,5.1 15.2,5.9 15.2,7C15.2,7.1 15.2,7.2 15.2,7.2C15.2,7.3 15.2,7.3 15.2,7.3C14.1,7.8 12.9,8 11.7,8C10.5,8 9.3,7.8 8.2,7.3C8.2,7.3 8.2,7.2 8.3,7.2C8.3,7.1 8.3,7.1 8.3,7C8.3,5.9 7.4,5.1 6.5,4.6C6.9,3.3 7.7,2.2 8.5,1.5C9.6,0.5 10.1,0.2 10.1,0.1Z"></path></svg>
+                    Continue with Apple
+                </button>
+            </div>
+             <div class="divider"><span>OR</span></div>
+            <button id="prompt-signup-email-btn" class="primary-btn">Sign up with Email</button>
+            <p class="login-link">Already have an account? <a href="#" id="prompt-login-link">Log In</a></p>
+        </div>
+    </div>
+    
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden">
+        <div class="modal-overlay" data-close-modal="login-modal"></div>
+        <div class="modal-content">
+            <button class="close-btn modal-close-btn" data-close-modal="login-modal" aria-label="Close">&times;</button>
+            <h2>Log In</h2>
+            <p id="login-error-message" class="error-message hidden"></p>
+            <input type="text" id="login-username-input" class="styled-input" placeholder="Username">
+            <input type="password" id="login-password-input" class="styled-input" placeholder="Password (any)">
+            <div class="modal-actions">
+                <button id="login-btn">Log In</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sign Up Modal -->
+    <div id="signup-modal" class="hidden">
+        <div class="modal-overlay" data-close-modal="signup-modal"></div>
+        <div class="modal-content">
+            <button class="close-btn modal-close-btn" data-close-modal="signup-modal" aria-label="Close">&times;</button>
+            <h2>Sign Up</h2>
+            <p id="signup-error-message" class="error-message hidden"></p>
+            <input type="text" id="signup-username-input" class="styled-input" placeholder="Username">
+            <input type="password" id="signup-password-input" class="styled-input" placeholder="Password (any)">
+            <div class="modal-actions">
+                <button id="signup-btn">Sign Up</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Permission Denied Modal -->
+    <div id="permission-denied-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2 id="permission-modal-title">Permission Needed</h2>
+            <p id="permission-modal-message">This feature requires a permission that you have denied. To continue, please go to your browser's site settings and grant access.</p>
+            <div class="modal-actions">
+                <button id="close-permission-modal-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Add Content Modal -->
+    <div id="add-content-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="add-content-sheet">
+            <button id="open-upload-modal-btn">
+                <span class="material-symbols-outlined">upload</span>
+                Camera Roll
+            </button>
+             <button id="open-camera-modal-btn">
+                <span class="material-symbols-outlined">photo_camera</span>
+                Camera
+            </button>
+            <button id="open-generate-modal-btn">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                Generate with AI
+            </button>
+            <button id="open-live-photo-modal-btn">
+                <span class="material-symbols-outlined">motion_photos_on</span>
+                Create Live Photo
+            </button>
+             <button id="open-live-modal-btn">
+                <span class="material-symbols-outlined">live_tv</span>
+                Go Live
+            </button>
+            <button id="cancel-add-content-btn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Upload video</h2>
+            <p>Post a video to your account</p>
+            <div id="upload-area">
+                <input type="file" id="video-file-input" accept="video/*" hidden>
+                <label for="video-file-input" class="upload-label">
+                    <span class="material-symbols-outlined">upload_file</span>
+                    <span>Select file</span>
+                </label>
+            </div>
+            <div id="preview-area" class="hidden">
+                <video id="video-preview" controls muted playsinline></video>
+                <audio id="sound-preview-audio" class="hidden"></audio>
+                <div class="video-edit-actions">
+                    <div id="sound-selection-display" class="hidden">
+                        <span class="material-symbols-outlined">music_note</span>
+                        <span id="selected-sound-title">Original Sound</span>
+                    </div>
+                    <button id="select-sound-btn" class="hidden video-edit-btn">
+                        <span class="material-symbols-outlined">music_note</span>
+                        <span>Select sound</span>
+                    </button>
+                    <button id="select-filter-btn" class="hidden video-edit-btn">
+                        <span class="material-symbols-outlined">auto_fix_high</span>
+                        <span>Filters</span>
+                    </button>
+                </div>
+            </div>
+            <textarea id="caption-input" placeholder="Add a caption..."></textarea>
+            <button id="generate-caption-btn" class="generate-caption-btn">
+                <span class="material-symbols-outlined">auto_awesome</span>
+                <span>Generate Caption</span>
+                <div class="loading-spinner-small hidden"></div>
+            </button>
+            <div class="modal-actions">
+                <button id="discard-draft-btn" class="hidden">Discard Draft</button>
+                <button id="cancel-upload-btn">Cancel</button>
+                <button id="post-btn">Post</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generation Modal -->
+    <div id="generation-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <!-- Input Stage -->
+            <div id="generation-input-stage">
+                <div class="modal-tabs">
+                    <button id="generate-tab-btn" class="modal-tab-btn active" data-tab="generate">Generate</button>
+                    <button id="edit-tab-btn" class="modal-tab-btn" data-tab="edit">Edit</button>
+                </div>
+    
+                <div id="generation-generate-view" data-tab-content="generate">
+                    <h2>Generate video with AI</h2>
+                    <p>Describe the video you want to create.</p>
+                    <textarea id="generation-prompt-input" placeholder="e.g., A cat playing a piano in space"></textarea>
+                    <div class="example-prompt-container">
+                        <button id="try-example-prompt-btn">Try an example</button>
+                    </div>
+
+                    <div class="generation-options-group">
+                        <div class="budget-header">
+                            <label for="generation-video-length">Video Length</label>
+                            <span id="generation-video-length-value">4s</span>
+                        </div>
+                        <input type="range" id="generation-video-length" class="styled-slider" min="2" max="16" step="1" value="4">
+                    </div>
+                    
+                    <div class="generation-options-group">
+                        <label>Aspect Ratio</label>
+                        <div id="generation-aspect-ratio-buttons">
+                            <button class="aspect-ratio-btn active" data-ratio="9:16">
+                                <span class="material-symbols-outlined">stay_current_portrait</span>
+                                Portrait (9:16)
+                            </button>
+                             <button class="aspect-ratio-btn" data-ratio="16:9">
+                                <span class="material-symbols-outlined">stay_current_landscape</span>
+                                Landscape (16:9)
+                            </button>
+                             <button class="aspect-ratio-btn" data-ratio="1:1">
+                                <span class="material-symbols-outlined">square</span>
+                                Square (1:1)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+    
+                <div id="generation-edit-view" class="hidden" data-tab-content="edit">
+                    <h2>Edit image with AI</h2>
+                    <p>Upload an image and describe your edit.</p>
+                    <div id="edit-upload-area">
+                        <input type="file" id="edit-image-file-input" accept="image/*" hidden>
+                        <label for="edit-image-file-input" class="upload-label">
+                            <span class="material-symbols-outlined">add_photo_alternate</span>
+                            <span>Select image</span>
+                        </label>
+                    </div>
+                    <div id="edit-preview-area" class="hidden">
+                        <img id="edit-image-preview" src="" alt="Image preview">
+                    </div>
+                    <textarea id="edit-prompt-input" class="hidden" placeholder="e.g., Add a birthday hat"></textarea>
+                </div>
+    
+                <div class="modal-actions">
+                    <button id="cancel-generation-btn">Cancel</button>
+                    <button id="generate-btn">Generate</button>
+                </div>
+            </div>
+    
+            <!-- Loading Stage -->
+            <div id="generation-loading-view" class="hidden">
+                <div class="loading-spinner large"></div>
+                <h3>Generating your creation...</h3>
+                <p id="loading-message">Warming up the AI...</p>
+            </div>
+    
+            <!-- Preview Stage -->
+            <div id="generation-preview-view" class="hidden">
+                <h2>Preview</h2>
+                <div class="preview-content-container">
+                     <video id="generation-video-preview" class="hidden" controls muted playsinline></video>
+                     <img id="generation-image-preview" src="" alt="Generated image" class="hidden">
+                </div>
+                <div class="preview-actions">
+                    <button id="select-filter-generated-btn">
+                        <span class="material-symbols-outlined">auto_fix_high</span>
+                        Filters
+                    </button>
+                </div>
+                <textarea id="generation-caption-input" placeholder="Add a caption..."></textarea>
+                <button id="generate-caption-generated-btn" class="generate-caption-btn">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    <span>Generate Caption</span>
+                    <div class="loading-spinner-small hidden"></div>
+                </button>
+                <div class="modal-actions">
+                    <button id="post-generated-btn">Post</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comments Modal -->
+    <div id="comments-modal" class="hidden">
+        <div class="modal-overlay" data-close-modal="comments-modal"></div>
+        <div class="comments-sheet">
+            <div class="comments-header">
+                <h3 id="comments-count">0 comments</h3>
+                <button id="close-comments-btn" class="close-btn" aria-label="Close comments">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div id="comments-list">
+                <!-- Comments injected here -->
+            </div>
+            <div class="comment-input-area">
+                <img id="comment-input-avatar" src="" class="comment-avatar">
+                <input type="text" id="comment-input" placeholder="Add a comment...">
+                <button id="post-comment-btn">Post</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Edit Profile</h2>
+            <div class="edit-profile-avatar-container">
+                <img id="edit-profile-avatar-preview" src="">
+                <label for="edit-profile-avatar-input" class="edit-avatar-label">
+                    <span class="material-symbols-outlined">edit</span>
+                </label>
+                <input type="file" id="edit-profile-avatar-input" accept="image/*" hidden>
+            </div>
+            <label for="edit-profile-username-input">Username</label>
+            <input type="text" id="edit-profile-username-input" class="styled-input">
+            <label for="edit-profile-bio-input">Bio</label>
+            <textarea id="edit-profile-bio-input"></textarea>
+            <div class="modal-actions">
+                <button id="cancel-edit-profile-btn">Cancel</button>
+                <button id="save-profile-btn">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Live Stream Page -->
+    <div id="live-stream-page" class="hidden">
+        <video id="live-video-preview" playsinline autoplay muted></video>
+        <div class="live-ui-overlay">
+            <div class="live-header">
+                <span class="live-badge">LIVE</span>
+                <span class="live-viewers">
+                    <span class="material-symbols-outlined">visibility</span>
+                    <span id="live-viewer-count">0</span>
+                </span>
+                <button id="end-live-btn">End</button>
+            </div>
+            <div id="floating-hearts-container"></div>
+            <div class="live-chat-container">
+                <div id="live-chat-messages"></div>
+                <div class="live-comment-input-area">
+                    <input type="text" id="live-comment-input" placeholder="Add a comment...">
+                    <button id="send-live-comment-btn">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+             <button id="live-like-btn" aria-label="Send a like">
+                <span class="material-symbols-outlined">favorite</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Camera Modal -->
+    <div id="camera-modal" class="hidden">
+        <video id="camera-preview" playsinline autoplay muted></video>
+        <div id="camera-filter-list" class="hidden">
+            <!-- Filters will be injected here -->
+        </div>
+        <div class="camera-controls-overlay">
+            <button id="cancel-camera-btn" class="camera-control top-left" aria-label="Close camera">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="top-right-controls">
+                <button id="switch-camera-btn" class="camera-control" aria-label="Switch camera">
+                    <span class="material-symbols-outlined">flip_camera_ios</span>
+                </button>
+                <button id="toggle-filters-btn" class="camera-control" aria-label="Toggle filters">
+                    <span class="material-symbols-outlined">auto_fix_high</span>
+                </button>
+            </div>
+            <div class="record-button-container">
+                <button id="record-btn" class="camera-control" aria-label="Start recording"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="add-content-sheet">
+            <h3>Share to</h3>
+            <div class="share-actions-grid">
+                 <button id="duet-btn" class="share-action-btn">
+                    <span class="material-symbols-outlined">people</span>
+                    Duet
+                </button>
+                <button id="copy-link-btn" class="share-action-btn">
+                    <span class="material-symbols-outlined">link</span>
+                    Copy Link
+                </button>
+                <button id="native-share-btn" class="share-action-btn">
+                    <span class="material-symbols-outlined">more_horiz</span>
+                    More
+                </button>
+            </div>
+            <button id="cancel-share-btn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Duet Modal -->
+    <div id="duet-modal" class="hidden">
+        <div class="duet-video-container">
+            <video id="duet-camera-preview" class="duet-video" playsinline autoplay muted></video>
+            <video id="duet-original-video" class="duet-video" playsinline loop muted crossorigin="anonymous"></video>
+            <!-- Canvas for combining streams, hidden from user -->
+            <canvas id="duet-canvas" class="hidden"></canvas> 
+        </div>
+        <div class="camera-controls-overlay">
+            <button id="cancel-duet-btn" class="camera-control top-left" aria-label="Cancel Duet">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="record-button-container">
+                <button id="record-duet-btn" class="camera-control" aria-label="Start Duet recording"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Selection Modal -->
+    <div id="sound-selection-modal" class="hidden">
+        <div class="sound-selection-header">
+            <button id="close-sound-selection-btn" aria-label="Close sound selection">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <h2>Sounds</h2>
+        </div>
+        <div class="sound-selection-content">
+            <div class="sound-upload-section">
+                <input type="file" id="sound-file-input" accept="audio/*" hidden>
+                <label for="sound-file-input" class="upload-sound-label">
+                    <span class="material-symbols-outlined">upload</span>
+                    Upload from device
+                </label>
+            </div>
+            <div id="sound-upload-preview" class="hidden">
+                <h3>Preview Upload</h3>
+                <audio id="uploaded-sound-preview" controls></audio>
+                <input type="text" id="sound-name-input" class="styled-input" placeholder="Sound name">
+                <button id="use-sound-btn" class="primary-btn">Use this sound</button>
+            </div>
+            <div class="sound-list-section">
+                <h3>For You</h3>
+                <div id="sound-list">
+                    <!-- Sounds will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Modals -->
+    <div id="promotion-type-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <button class="close-btn modal-close-btn" aria-label="Close">&times;</button>
+            <h2>Promote</h2>
+            <p>Choose what you'd like to promote to reach a wider audience.</p>
+            <div class="promotion-options">
+                <button class="promo-option-btn" id="promo-type-video">
+                    <span class="material-symbols-outlined">movie</span>
+                    Promote Video
+                    <span class="promo-description">Boost a specific video to get more views, likes, and comments.</span>
+                </button>
+                <button class="promo-option-btn" id="promo-type-account">
+                    <span class="material-symbols-outlined">account_circle</span>
+                    Promote Account
+                    <span class="promo-description">Increase your profile's visibility to gain more followers.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="promotion-setup-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+             <div class="promo-setup-header">
+                <button id="promo-setup-back-btn" class="promo-back-btn hidden" aria-label="Back">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h2 id="promo-setup-title">Set up your promotion</h2>
+                <button id="promo-setup-close-btn" class="close-btn modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+
+            <!-- Step 1: Goal -->
+            <div class="promo-step" id="promo-step-goal">
+                <h3>What's your goal?</h3>
+                <p>Select the main result you want from this promotion.</p>
+                <div class="promotion-options vertical">
+                     <button class="promo-goal-btn" data-goal="views">More Video Views</button>
+                     <button class="promo-goal-btn" data-goal="profile_visits">More Profile Visits</button>
+                     <button class="promo-goal-btn" data-goal="messages">More Messages</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Audience -->
+            <div class="promo-step hidden" id="promo-step-audience">
+                 <h3>Define your audience</h3>
+                 <p>Reach the people who are most likely to be interested in your content.</p>
+                 <div class="promo-form-group">
+                    <label for="promo-audience-location">Location <span class="tooltip" data-tooltip="Target users in a specific city, region, or country.">?</span></label>
+                    <input type="text" id="promo-audience-location" class="styled-input" placeholder="e.g., California, USA">
+                 </div>
+                 <div class="promo-form-group">
+                    <label>Interests <span class="tooltip" data-tooltip="Select interests to target users who have engaged with similar content.">?</span></label>
+                    <div id="promo-audience-interests" class="tags-container selectable">
+                        <!-- Interest tags injected here -->
+                    </div>
+                 </div>
+                  <div class="promo-form-group">
+                    <label for="promo-audience-age">Age Range <span class="tooltip" data-tooltip="Specify the age group of the people you want to reach.">?</span></label>
+                    <div class="age-range-labels">
+                        <span id="promo-age-min-label">18</span>
+                        <span>-</span>
+                        <span id="promo-age-max-label">65+</span>
+                    </div>
+                    <input type="range" id="promo-audience-age" class="styled-slider" min="18" max="65" value="18">
+                    <input type="range" id="promo-audience-age-max" class="styled-slider" min="18" max="65" value="65">
+                 </div>
+            </div>
+
+            <!-- Step 3: Budget & Duration -->
+            <div class="promo-step hidden" id="promo-step-budget">
+                <h3>Budget and Duration</h3>
+                <p>Choose how much you want to spend and for how long.</p>
+                 <div class="promo-form-group">
+                    <div class="budget-header">
+                        <label for="promo-budget">Budget</label>
+                        <span id="promo-budget-value">$50</span>
+                    </div>
+                    <input type="range" id="promo-budget" class="styled-slider" min="5" max="1000" step="5" value="50">
+                 </div>
+                 <div class="promo-form-group">
+                    <div class="budget-header">
+                        <label for="promo-duration">Duration</label>
+                        <span id="promo-duration-value">5 Days</span>
+                    </div>
+                    <input type="range" id="promo-duration" class="styled-slider" min="1" max="30" value="5">
+                 </div>
+                 <div class="estimated-reach">
+                    <h4>Estimated Reach</h4>
+                    <p>
+                        <span class="material-symbols-outlined">group</span>
+                        <span id="promo-estimated-reach">12.5k - 30.0k</span>
+                        accounts
+                    </p>
+                    <span class="tooltip" data-tooltip="This is an estimate of how many unique accounts will see your promotion. Actual results may vary.">?</span>
+                 </div>
+            </div>
+
+            <!-- Step 4: Review -->
+            <div class="promo-step hidden" id="promo-step-review">
+                <h3>Review your promotion</h3>
+                <p>Confirm the details below before you proceed to payment.</p>
+                <div class="promo-review-summary">
+                    <!-- Summary details injected here -->
+                </div>
+                <div class="promo-total-cost">
+                    <span>Total Spend</span>
+                    <span id="promo-review-total-cost">$50.00</span>
+                </div>
+                 <div class="payment-simulation">
+                    <span class="material-symbols-outlined">credit_card</span>
+                    This is a simulated payment. No real charges will be made.
+                </div>
+            </div>
+
+            <div class="promo-setup-footer">
+                <button id="promo-next-btn" class="primary-btn">Next</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="promotions-dashboard-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+            <div class="promo-setup-header">
+                <h2 id="promo-dashboard-title">Promotions Dashboard</h2>
+                <button id="promo-dashboard-close-btn" class="close-btn modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div id="promotions-list">
+                <!-- Promotion items will be injected here -->
+            </div>
+            <p id="no-promotions-message" class="hidden">You haven't run any promotions yet. Tap 'Promote' on your profile or videos to get started!</p>
+        </div>
+    </div>
+
+    <!-- AI Filter Modal -->
+    <div id="filter-modal" class="hidden">
+        <div class="modal-overlay" data-close-modal="filter-modal"></div>
+        <div class="filter-sheet">
+            <div class="filter-sheet-header">
+                <h3>Filters</h3>
+                <button id="done-filter-btn">Done</button>
+            </div>
+            <div id="filter-list">
+                <!-- Filter items will be injected here -->
+            </div>
+            <div id="filter-intensity-container" class="hidden">
+                <label for="filter-intensity-slider">Intensity</label>
+                <input type="range" id="filter-intensity-slider" class="styled-slider" min="0" max="100" value="100">
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rewards Hub Modal -->
+    <div id="rewards-hub-modal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content large">
+            <div class="rewards-hub-header">
+                <h2 class="rewards-hub-title">Rewards Hub</h2>
+                <button id="rewards-hub-close-btn" class="close-btn modal-close-btn" aria-label="Close">&times;</button>
+            </div>
+            <div class="rewards-hub-balance">
+                <p>Your Balance</p>
+                <div class="ep-balance-display">
+                    <span class="material-symbols-outlined">workspace_premium</span>
+                    <span id="rewards-hub-ep-balance">0</span>
+                </div>
+            </div>
+            <div class="rewards-hub-content">
+                <div class="rewards-section">
+                    <h3>Profile Badges</h3>
+                    <div id="rewards-badges-list" class="rewards-grid">
+                        <!-- Badge perks will be injected here -->
+                    </div>
+                </div>
+                <div class="rewards-section">
+                    <h3>Exclusive Filters</h3>
+                     <div id="rewards-filters-list" class="rewards-grid">
+                        <!-- Filter perks will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="module" src="index.js"></script>
+</body>
+</html>

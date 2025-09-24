@@ -1,0 +1,8 @@
+{
+  "name": "ICONS WORLD",
+  "description": "ICON is a social video app with a vertical feed experience, built with modern web technologies.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
